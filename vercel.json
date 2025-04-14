@@ -1,6 +1,6 @@
 {
     "version": 2,
-    "buildCommand": null,
+    "buildCommand": "npm install && npm run build",
     "outputDirectory": "public",
     "functions": {
         "api/index.php": {
@@ -10,7 +10,11 @@
     "regions": ["sin1"],
     "routes": [
         {
-            "src": "/(css|js|build|assets|favicon.ico|robots.txt)(.*)",
+            "src": "/build/(.*)",
+            "dest": "/public/build/$1"
+        },
+        {
+            "src": "/(css|js|assets|favicon.ico|robots.txt)(.*)",
             "dest": "/public/$1$2"
         },
         {
