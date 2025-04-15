@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Registration;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class RegistrasiController extends Controller
 {
@@ -30,8 +31,12 @@ class RegistrasiController extends Controller
             'selectedTime' => 'required|in:09:00,10:00,11:00',
         ]);
 
+        // Cari ID terendah yang tersedia (mengisi gap ID)
+        $nextId = $this->findLowestAvailableId();
+
         // Create registration with explicit date handling
         $registration = new Registration();
+        $registration->id = $nextId; // Set ID manual untuk mengisi gap
         $registration->nama = $validated['nama'];
         $registration->nik = $validated['nik'];
         $registration->kontak = $validated['kontak'];
@@ -49,6 +54,29 @@ class RegistrasiController extends Controller
         return redirect()->route('berhasil-registrasi', [
             'id' => $registration->id,
         ]);
+    }
+
+    /**
+     * Find the lowest available ID by checking for gaps
+     */
+    private function findLowestAvailableId()
+    {
+        // Get all IDs in ascending order
+        $ids = Registration::orderBy('id')->pluck('id')->toArray();
+
+        // Start from 1 and find the first gap
+        $counter = 1;
+
+        foreach ($ids as $id) {
+            if ($counter < $id) {
+                // Found a gap
+                return $counter;
+            }
+            $counter++;
+        }
+
+        // If no gaps, return next ID
+        return $counter;
     }
 
     public function showSuccessPage(Request $request, $id)

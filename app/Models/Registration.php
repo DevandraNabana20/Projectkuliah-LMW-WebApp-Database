@@ -9,7 +9,11 @@ class Registration extends Model
 {
     use HasFactory;
 
+    // Add these lines to enable manual ID setting
+    public $incrementing = false;
+
     protected $fillable = [
+        'id', // Add this line to allow setting ID
         'nama',
         'nik',
         'kontak',
@@ -21,8 +25,8 @@ class Registration extends Model
         'tanggal_reservasi',
         'waktu_reservasi',
         'status',
-        'alamat',         // Add this
-        'detail_pengaduan' // Add this
+        'alamat',
+        'detail_pengaduan'
     ];
 
     protected $casts = [
