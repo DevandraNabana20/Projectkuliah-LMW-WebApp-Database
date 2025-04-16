@@ -20,7 +20,7 @@
                 <div
                     class="relative flex items-center border-2 border-black rounded-2xl p-2 md:p-3 lg:p-4 shadow-md w-full bg-[#9A7B7B] transition-all duration-300 hover:-translate-y-1 hover:bg-[#9A7B7B] hover:text-gray-900 hover:shadow-xl group h-auto min-h-[5rem] md:h-28 lg:h-28">
                     <span
-                        class="absolute top-0 left-0 mt-1 ml-1 h-full w-full rounded-2xl bg-[#D9D9D9] border border-black transition-all duration-300 group-hover:bg-[#ebe6e6]"></span>
+                        class="absolute top-0 left-0 mt-1 ml-1 h-full w-full rounded-2xl bg-[#f5f5f5] border border-black transition-all duration-300 group-hover:bg-[#ebe6e6]"></span>
                     <div class="relative flex items-center w-full py-3">
                         <img src="{{ asset('assets/images/TATAP-MUKA-LOGO.png') }}" alt="Tatap Muka Icon"
                             class="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10 mr-2 md:mr-3 flex-shrink-0 transition-transform duration-300 group-hover:scale-110 ml-3">
@@ -40,7 +40,7 @@
                 <div
                     class="relative flex items-center border-2 border-black rounded-2xl p-2 md:p-3 lg:p-4 shadow-md w-full bg-[#9A7B7B] transition-all duration-300 hover:-translate-y-1 hover:bg-[#9A7B7B] hover:text-gray-900 hover:shadow-xl group h-auto min-h-[5rem] md:h-28 lg:h-28">
                     <span
-                        class="absolute top-0 left-0 mt-1 ml-1 h-full w-full rounded-2xl bg-[#D9D9D9] border border-black transition-all duration-300 group-hover:bg-[#ebe6e6]"></span>
+                        class="absolute top-0 left-0 mt-1 ml-1 h-full w-full rounded-2xl bg-[#f5f5f5] border border-black transition-all duration-300 group-hover:bg-[#ebe6e6]"></span>
                     <div class="relative flex items-center w-full py-3">
                         <svg class="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10 mr-2 md:mr-3 flex-shrink-0 transition-transform duration-300 group-hover:scale-110 text-green-600 ml-3"
                             viewBox="0 0 24 24" fill="currentColor">
