@@ -235,6 +235,19 @@
                         <div class="info-value">{{ $complaint->companion ?? '-' }}</div>
                     </div>
 
+                    <!-- File Pendukung -->
+                    @if ($complaint->file_url)
+                        <div class="info-group">
+                            <div class="info-label">File Pendukung</div>
+                            <div class="info-value">
+                                <a href="{{ $complaint->file_url }}" target="_blank"
+                                    class="text-blue-600 hover:underline flex items-center">
+                                    <i class="fas fa-file mr-1"></i> {{ $complaint->file_name }}
+                                </a>
+                            </div>
+                        </div>
+                    @endif
+
                     <div class="info-group">
                         <div class="info-label">Ditambahkan Pada</div>
                         <div class="info-value">

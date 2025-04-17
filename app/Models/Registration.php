@@ -26,7 +26,9 @@ class Registration extends Model
         'waktu_reservasi',
         'status',
         'alamat',
-        'detail_pengaduan'
+        'detail_pengaduan',
+        'file_url',     // Tambahkan ini
+        'file_name'     // Tambahkan ini
     ];
 
     protected $casts = [

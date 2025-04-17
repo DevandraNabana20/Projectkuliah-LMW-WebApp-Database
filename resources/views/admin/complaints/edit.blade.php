@@ -59,8 +59,8 @@
 
         <!-- Edit Form -->
         <div class="bg-white rounded-lg shadow-md p-6">
-            <form id="editForm" method="POST" action="{{ route('admin.complaints.update', $complaint->id) }}"
-                class="space-y-6">
+            <form method="POST" id="editForm" action="{{ route('admin.complaints.update', $complaint->id) }}"
+                class="space-y-6" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
 
@@ -209,6 +209,29 @@
                             <textarea id="detail_pengaduan" name="detail_pengaduan" rows="4"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2C1C11]/50 placeholder-gray-400 text-gray-700 bg-white">{{ old('detail_pengaduan', $complaint->detail_pengaduan) }}</textarea>
                             <div class="text-red-500 text-sm hidden mt-1" id="detail_pengaduan-error"></div>
+                        </div>
+
+                        <!-- File Pendukung -->
+                        <div>
+                            <label for="file_pendukung" class="block text-sm font-medium text-gray-700 mb-1">
+                                File Pendukung (Opsional)
+                            </label>
+
+                            @if ($complaint->file_url)
+                                <div class="mb-2 p-2 border rounded bg-gray-50">
+                                    <p class="text-sm text-black">File saat ini:
+                                        <a href="{{ $complaint->file_url }}" target="_blank"
+                                            class="text-blue-600 hover:underline">
+                                            {{ $complaint->file_name }}
+                                        </a>
+                                    </p>
+                                </div>
+                            @endif
+
+                            <input type="file" id="file_pendukung" name="file_pendukung"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2C1C11]/50 placeholder-gray-400 text-gray-700 bg-white">
+                            <p class="text-xs text-gray-500 mt-1">Format: PDF, ZIP, RAR, JPG, PNG (max. 4MB)</p>
+                            <div class="text-red-500 text-sm hidden mt-1" id="file_pendukung-error"></div>
                         </div>
                     </div>
                 </div>
@@ -487,6 +510,39 @@
                 }
             }
 
+            // Validasi file pendukung
+            function validateFilePendukung() {
+                const fileInput = document.getElementById('file_pendukung');
+                const errorDiv = document.getElementById('file_pendukung-error');
+                let isValid = true;
+
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    const fileSize = file.size / 1024 / 1024; // Size in MB
+                    const allowedExtensions = ['pdf', 'zip', 'rar', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+                    const fileExtension = file.name.split('.').pop().toLowerCase();
+
+                    if (fileSize > 4) {
+                        showError(errorDiv, 'Ukuran file terlalu besar (max 4MB)');
+                        isValid = false;
+                    } else if (!allowedExtensions.includes(fileExtension)) {
+                        showError(errorDiv, 'Format file tidak didukung');
+                        isValid = false;
+                    } else {
+                        hideError(errorDiv);
+                    }
+                } else {
+                    hideError(errorDiv);
+                }
+
+                return isValid;
+            }
+
+            // Add event listener
+            if (document.getElementById('file_pendukung')) {
+                document.getElementById('file_pendukung').addEventListener('change', validateFilePendukung);
+            }
+
             // Input event listeners for validation
             namaField.addEventListener('input', function() {
                 this.value = this.value.replace(/[0-9]/g, '');
@@ -535,11 +591,12 @@
                 const isAlamatValid = validateAlamat();
                 const isTopikValid = validateTopik();
                 const isDetailValid = validateDetailPengaduan();
+                const isFileValid = validateFilePendukung();
 
                 // If any validation fails
                 if (!isNamaValid || !isNIKValid || !isGenderValid || !isEmailValid ||
                     !isNoHPValid || !isCompanionValid || !isAlamatValid ||
-                    !isTopikValid || !isDetailValid) {
+                    !isTopikValid || !isDetailValid || !isFileValid) {
 
                     // Scroll to the first error
                     const firstError = document.querySelector('.text-red-500:not(.hidden)');

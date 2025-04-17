@@ -6,6 +6,7 @@ use App\Models\Registration;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
+use Cloudinary\Cloudinary;
 
 class ComplaintController extends Controller
 {
@@ -100,6 +101,7 @@ class ComplaintController extends Controller
             'waktu_reservasi' => 'required|in:09:00,10:00,11:00',
             'status' => 'required|in:process,done',
             'companion' => 'nullable|string|max:255',
+            'file_pendukung' => 'nullable|file|max:4096|mimes:pdf,zip,rar,jpg,jpeg,png,gif,bmp,webp' // 4MB limit
         ]);
 
         if ($validator->fails()) {
@@ -128,6 +130,25 @@ class ComplaintController extends Controller
         $complaint->alamat = $request->alamat;
         $complaint->detail_pengaduan = $request->detail_pengaduan;
         $complaint->needs_companion = !empty($request->companion);
+
+        // Upload file jika ada
+        if ($request->hasFile('file_pendukung')) {
+            $file = $request->file('file_pendukung');
+            $fileName = time() . '_' . $file->getClientOriginalName();
+
+            // Upload ke Cloudinary
+            $cloudinary = app('cloudinary')->uploadApi();
+            $result = $cloudinary->upload($file->getRealPath(), [
+                'folder' => 'lapor_mas_wapres/files',
+                'resource_type' => 'auto', // Auto-detect file type
+                'public_id' => $nextId . '_' . pathinfo($fileName, PATHINFO_FILENAME)
+            ]);
+
+            // Simpan URL dan nama file
+            $complaint->file_url = $result['secure_url'];
+            $complaint->file_name = $fileName;
+        }
+
         $complaint->save();
 
         return redirect()
@@ -167,16 +188,18 @@ class ComplaintController extends Controller
 
         $validator = Validator::make($request->all(), [
             'nama' => 'required|string|max:255',
-            'nik' => 'required|string|max:16',
+            'nik' => 'required|string|size:16',
             'gender' => 'required|in:laki-laki,perempuan',
             'email' => 'nullable|email|max:255',
-            'no_hp' => 'required|string|max:15', // Form field name
+            'no_hp' => 'required|string|min:10|max:13',
             'alamat' => 'nullable|string',
             'topik' => 'required|string|max:255',
             'detail_pengaduan' => 'nullable|string',
             'tanggal_reservasi' => 'required|date',
+            /*    'waktu_reservasi' => 'required|in:09:00,10:00,11:00', */
             'status' => 'required|in:process,done',
             'companion' => 'nullable|string|max:255',
+            'file_pendukung' => 'nullable|file|max:4096|mimes:pdf,zip,rar,jpg,jpeg,png,gif,bmp,webp'
         ]);
 
         if ($validator->fails()) {
@@ -186,30 +209,68 @@ class ComplaintController extends Controller
                 ->withInput();
         }
 
-        // Instead of $request->all(), explicitly set each field
-        $complaint->update([
-            'nama' => $request->nama,
-            'nik' => $request->nik,
-            'kontak' => $request->no_hp, // Map form field to database column
-            'gender' => $request->gender,
-            'email' => $request->email,
-            'topik' => $request->topik,
-            'companion' => $request->companion,
-            'tanggal_reservasi' => $request->tanggal_reservasi,
-            'status' => $request->status,
-            'alamat' => $request->alamat,
-            'detail_pengaduan' => $request->detail_pengaduan,
-            // 'waktu_reservasi' remains unchanged
-        ]);
+        // Upload file baru jika ada
+        if ($request->hasFile('file_pendukung')) {
+            // Hapus file lama di Cloudinary jika ada
+            if ($complaint->file_url) {
+                $publicId = $this->getPublicIdFromUrl($complaint->file_url);
+                if ($publicId) {
+                    app('cloudinary')->uploadApi()->destroy($publicId);
+                }
+            }
+
+            $file = $request->file('file_pendukung');
+            $fileName = time() . '_' . $file->getClientOriginalName();
+
+            // Upload ke Cloudinary
+            $cloudinary = app('cloudinary')->uploadApi();
+            $result = $cloudinary->upload($file->getRealPath(), [
+                'folder' => 'lapor_mas_wapres/files',
+                'resource_type' => 'auto',
+                'public_id' => $id . '_' . pathinfo($fileName, PATHINFO_FILENAME)
+            ]);
+
+            // Update langsung nilai file_url dan file_name
+            $complaint->file_url = $result['secure_url'];
+            $complaint->file_name = $fileName;
+            $complaint->save();
+        }
+
+        // Update informasi complaint lainnya
+        $complaint->nama = $request->nama;
+        $complaint->nik = $request->nik;
+        $complaint->kontak = $request->no_hp;
+        $complaint->gender = $request->gender;
+        $complaint->email = $request->email;
+        $complaint->topik = $request->topik;
+        $complaint->companion = $request->companion;
+        $complaint->tanggal_reservasi = $request->tanggal_reservasi;
+        /* $complaint->waktu_reservasi = $request->waktu_reservasi; */
+        $complaint->status = $request->status;
+        $complaint->alamat = $request->alamat;
+        $complaint->detail_pengaduan = $request->detail_pengaduan;
+        $complaint->needs_companion = !empty($request->companion);
+        $complaint->save();
 
         return redirect()
             ->route('admin.complaints')
             ->with('success', 'Pengaduan berhasil diperbarui.');
     }
 
-    /**
-     * Update only the status of the specified complaint.
-     */
+    // Helper method untuk mendapatkan public_id dari URL Cloudinary
+    private function getPublicIdFromUrl($url)
+    {
+        if (strpos($url, 'cloudinary.com') !== false) {
+            $parts = explode('/', $url);
+            $filename = end($parts);
+            // Hapus parameter query string jika ada
+            $filename = explode('?', $filename)[0];
+            $publicId = 'lapor_mas_wapres/files/' . pathinfo($filename, PATHINFO_FILENAME);
+            return $publicId;
+        }
+        return null;
+    }
+
     public function updateStatus(Request $request, $id)
     {
         $complaint = Registration::findOrFail($id);

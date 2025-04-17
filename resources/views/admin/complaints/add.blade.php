@@ -59,7 +59,8 @@
 
         <!-- Add Form -->
         <div class="bg-white rounded-lg shadow-md p-6">
-            <form id="addForm" method="POST" action="{{ route('admin.complaints.store') }}" class="space-y-6">
+            <form id="addForm" method="POST" action="{{ route('admin.complaints.store') }}" class="space-y-6"
+                enctype="multipart/form-data">
                 @csrf
                 <!-- Hidden field for status -->
                 <input type="hidden" name="status" value="process">
@@ -200,8 +201,21 @@
                                 class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2C1C11]/50 placeholder-gray-400 text-gray-700 bg-white">{{ old('detail_pengaduan') }}</textarea>
                             <div class="text-red-500 text-sm hidden mt-1" id="detail_pengaduan-error"></div>
                         </div>
+
+                        <!-- File Pendukung -->
+                        <div>
+                            <label for="file_pendukung" class="block text-sm font-medium text-gray-700 mb-1">
+                                File Pendukung (Opsional)
+                            </label>
+                            <input type="file" id="file_pendukung" name="file_pendukung"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2C1C11]/50 placeholder-gray-400 text-gray-700 bg-white">
+                            <p class="text-xs text-gray-500 mt-1">Format: PDF, ZIP, RAR, JPG, PNG (max. 4MB)</p>
+                            <div class="text-red-500 text-sm hidden mt-1" id="file_pendukung-error"></div>
+                        </div>
                     </div>
                 </div>
+
+
 
                 <!-- Action Buttons -->
                 <div class="border-t pt-6 flex flex-col-reverse sm:flex-row justify-between items-center gap-3">
@@ -498,6 +512,39 @@
                 return isValid;
             }
 
+            // Validasi file pendukung
+            function validateFilePendukung() {
+                const fileInput = document.getElementById('file_pendukung');
+                const errorDiv = document.getElementById('file_pendukung-error');
+                let isValid = true;
+
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    const fileSize = file.size / 1024 / 1024; // Size in MB
+                    const allowedExtensions = ['pdf', 'zip', 'rar', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+                    const fileExtension = file.name.split('.').pop().toLowerCase();
+
+                    if (fileSize > 4) {
+                        showError(errorDiv, 'Ukuran file terlalu besar (max 4MB)');
+                        isValid = false;
+                    } else if (!allowedExtensions.includes(fileExtension)) {
+                        showError(errorDiv, 'Format file tidak didukung');
+                        isValid = false;
+                    } else {
+                        hideError(errorDiv);
+                    }
+                } else {
+                    hideError(errorDiv);
+                }
+
+                return isValid;
+            }
+
+            // Add event listener
+            if (document.getElementById('file_pendukung')) {
+                document.getElementById('file_pendukung').addEventListener('change', validateFilePendukung);
+            }
+
             // Input event listeners for validation
             namaField.addEventListener('input', function() {
                 this.value = this.value.replace(/[0-9]/g, '');
@@ -549,11 +596,12 @@
                 const isTopikValid = validateTopik();
                 const isDetailValid = validateDetailPengaduan();
                 const isWaktuValid = validateWaktuReservasi();
+                const isFileValid = validateFilePendukung();
 
                 // If any validation fails
                 if (!isNamaValid || !isNIKValid || !isGenderValid || !isEmailValid ||
                     !isNoHPValid || !isCompanionValid || !isAlamatValid ||
-                    !isTopikValid || !isDetailValid || !isWaktuValid) {
+                    !isTopikValid || !isDetailValid || !isWaktuValid || !isFileValid) {
 
                     // Scroll to the first error
                     const firstError = document.querySelector('.text-red-500:not(.hidden)');
